@@ -1,5 +1,4 @@
-// import Plotly from "plotly.js";
-import { newPlot } from "plotly.js";
+import fs from "fs";
 
 // Define the skew of a DNA string Genome, denoted Skew(Genome),
 // as the difference between the total number of occurrences of 'G' and 'C' in Genome.
@@ -12,7 +11,7 @@ import { newPlot } from "plotly.js";
 // Given: A DNA string Genome.
 // Return: All integer(s) i minimizing Skew(Prefixi (Text))
 // over all values of i (from 0 to |Genome|).
-const minSkew = (genome: string) => {
+const minSkew = (genome: string, name?: string) => {
   // skew i, starting with i=0 to 0
   // #G - #C in the ith position
   const skew = new Array<number>();
@@ -37,6 +36,13 @@ const minSkew = (genome: string) => {
   skew.forEach((x, i) => {
     if (x === min) positions.push(i);
   });
+
+  if (name) {
+    fs.writeFileSync(
+      `./src/chapter1/1F_min_skew/skew_diagram/skew_${name}.txt`,
+      skew.toString()
+    );
+  }
 
   return positions;
 };

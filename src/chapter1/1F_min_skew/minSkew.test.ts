@@ -15,7 +15,7 @@ describe("Minimum Skew Problem", () => {
       encoding: "utf8",
       flag: "r",
     });
-    const positions = minSkew(genome);
+    const positions = minSkew(genome, "extra_dataset");
     const ans = [...positions].toString().replace(/,/g, " ");
     expect(ans).toBe("89969 89970 89971 90345 90346");
   });
@@ -25,7 +25,7 @@ describe("Minimum Skew Problem", () => {
       encoding: "utf8",
       flag: "r",
     });
-    const positions = minSkew(genome);
+    const positions = minSkew(genome, "submit");
     const ans = [...positions].toString().replace(/,/g, " ");
     expect(ans).toBe("78139");
   });
