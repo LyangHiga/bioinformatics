@@ -21,7 +21,8 @@ import approximatePatternMatching from "../1H_approximate_pattern_matching/appro
 // Return: All most frequent k-mers with up to d mismatches in Text.
 
 // Naive implementation: Generate all permutatios with repetition (4^k)
-
+// Approx. O(4^k * O(approximatePatternMatching))
+//  ~~~~ O(4^k*|text-k|)
 export const freqWordsMistaches = (text: string, k: number, d: number) => {
   // map for the more frequent words of size k (k-mern)
   // key: pattern , val: number of times this pattern(with at most d mismatches)
@@ -51,9 +52,9 @@ export const freqWordsMistaches = (text: string, k: number, d: number) => {
 
 // return all permutations with repetition
 // with size k
-const permutator = (k: number) => {
-  let result: string[] = [];
-  let nucleotideos = ["A", "C", "G", "T"];
+export const permutator = (k: number) => {
+  const result: string[] = [];
+  const nucleotideos = ["A", "C", "G", "T"];
 
   const permute = (arr: string[]) => {
     if (arr.length > k - 1) {
@@ -70,8 +71,83 @@ const permutator = (k: number) => {
   return result;
 };
 
+// given a pattern and position idx
+// returns all pattern' with mismatch in idx position
+// export const changePinIdx = (pattern: string, idx: number) => {
+export const changePinIdx = (pattern: string[], idx: number) => {
+  const nucleotideos = ["A", "C", "G", "T"];
+  const mismactchesP: string[][] = [];
+  for (let letter of nucleotideos) {
+    mismactchesP.push([
+      ...pattern.slice(0, idx),
+      letter,
+      ...pattern.slice(idx + 1),
+    ]);
+  }
+  return mismactchesP;
+};
+
+// Approx. O(Combinations(k,k-d) * 4^d)
+// Combinations (k,k-d) = k!/ ((k-d)!d!)
+//  ~~~ O(k! * 4^d)/((k-d)!d!)
+export const patternToMP = (pattern: string, d: number) => {
+  const result = new Map<string, number>();
+
+  const permute = (arr: string[], m: number) => {
+    if (m === 0) {
+      result.set(arr.toString().replace(/,/g, ""), 0);
+      return;
+    }
+    // foreach position
+    for (let i = 0; i < arr.length; i++) {
+      // foreach new pattern
+      const newPatterns = changePinIdx(arr, i);
+
+      for (let np of newPatterns) {
+        // console.log(np, m - 1);
+        permute(np, m - 1);
+      }
+    }
+  };
+
+  permute([...pattern], d);
+
+  return [...result.keys()];
+};
+
 // More elegant approach: we could use each slice of text (k-mern) as pattern
 //    use a function patternToPattern': given a pattern returns all patterns'
 //    with at most d mismatches
 //    for each pattern we keep pattens' in a hash table counting how many times
 //    each pattern' appears.
+
+//Approx. O(|text-k| * O(patternToMP))
+// ~~~~ O( |text -k| * k! * 4^d)/((k-d)!d!)
+export const freqWordsMistachesHT = (text: string, k: number, d: number) => {
+  // map for the more frequent words of size k (k-mern)
+  // key: pattern, val: number of times this pattern(with at most d mismatches)
+  // appears in text
+  const frequentPatterns = new Map<string, number>();
+
+  // Go trhough all text and get all pattern and its pattern' with at most d mismatches
+  for (let i = 0; i < text.length - k + 1; i++) {
+    const p = text.slice(i, i + k);
+    const patterns = patternToMP(p, d);
+    for (let q of patterns) {
+      const curCount = frequentPatterns.get(q);
+      if (curCount) {
+        frequentPatterns.set(q, curCount + 1);
+      } else {
+        frequentPatterns.set(q, 1);
+      }
+    }
+  }
+  // to keep only patterns that appeas maxCount times
+  const maxCount = Math.max(...frequentPatterns.values());
+  for (const [key, value] of frequentPatterns.entries()) {
+    if (value !== maxCount) {
+      frequentPatterns.delete(key);
+    }
+  }
+  return frequentPatterns;
+};
